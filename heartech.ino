@@ -33,10 +33,8 @@ void setup() {
   Serial.begin(115200);
 
   display.begin();
-  display.sendCommand(0xA0);
-  display.sendCommand(0b01110000);
   display.fillScreen(0);
-  display.setTextColor(RED);
+  display.setTextColor(WHITE);
   display.setTextSize(2);
 
   delay(500);
@@ -52,6 +50,7 @@ void setup() {
 }
 
 bool firstRun = true;
+bool connected = true;
 
 void loop() {
   if (Serial.available() != 0)
@@ -59,6 +58,25 @@ void loop() {
     while(true){}
   }
 
+  Serial.print(connected);
+  Serial.print(" - ");
+  Serial.println(audio->client.connected());
+  if (connected != audio->client.connected())
+  {
+    if (connected == true)
+    {
+      drawConnectivitySign();
+    }
+    else
+    {
+      clearConnectivitySign();
+    }
+  }
+  connected = audio->client.connected();
+  if (!connected)
+  {
+    audio->ConnectToServer(false);
+  }
   audio->Record(&display, firstRun);
   firstRun = false;
 }
@@ -107,11 +125,25 @@ void func1() {
         {
           display.print(result);
         }
+        connected = audio->client.connected();
+        if (!connected) drawConnectivitySign();
         str = "";
         transcribing = false;
-        audio->PrintHttpHeader();
       }
       ThisThread::sleep_for(100);
     }
   }
+}
+
+void drawConnectivitySign()
+{
+  display.setCursor(96 - 12, 64 - 15);
+  display.setTextColor(BLUE);
+  display.print("!");
+  display.setTextColor(WHITE);
+}
+
+void clearConnectivitySign()
+{
+  display.fillRect(96 - 12, 64 - 15, 12, 15, BLACK);
 }

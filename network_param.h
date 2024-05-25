@@ -2,8 +2,10 @@
 #define _NETWORK_PARAM_H
 #include "arduino_secrets.h"
 
-const char *ssid = SECRET_SSID;
-const char *password = SECRET_PASS;
+const char *ssid1 = SECRET_SSID_1;
+const char *ssid2 = SECRET_SSID_2;
+const char *password1 = SECRET_PASS_1;
+const char *password2 = SECRET_PASS_2;
 const char*  server = "speech.googleapis.com";
 
 // To get the certificate for your region run:

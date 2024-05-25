@@ -41,6 +41,7 @@ public:
   void Record(Adafruit_SSD1331* display, bool firstRun);
   void CreateWavHeader(byte* header, int waveDataSize);
   void PrintHttpHeader();
+  void ConnectToServer(bool first);
 };
 
 #endif // _AUDIO_H

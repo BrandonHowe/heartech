@@ -4,15 +4,34 @@
 #include "arduino_base64.hpp"
 
 const int microphonePin = A0;
+int credentialNum = 1;
 
 Audio::Audio(Authentication authentication) {
   wavData = new char*[wavDataSize/dividedWavDataSize];
   for (int i = 0; i < wavDataSize/dividedWavDataSize; ++i) wavData[i] = new char[dividedWavDataSize];
 
   this->authentication = authentication;
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) delay(1000);
-  // client.setCACert(root_ca);
+  Serial.println("1");
+  ConnectToServer(true);
+  Serial.println("2");
+}
+
+void Audio::ConnectToServer(bool first)
+{
+  Serial.println("Trying to connect...");
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    auto ssid = credentialNum == 1 ? ssid1 : ssid2;
+    auto password = credentialNum == 1 ? password1 : password2;
+    Serial.print("Connecting with credential ");
+    Serial.println(credentialNum);
+    int status = WiFi.begin(ssid, password);
+    if (first && status != WL_CONNECTED)
+    {
+      credentialNum = credentialNum == 1 ? 2 : 1;
+    }
+    delay(5000);
+  }
   if (client.connect(server, 443)) {
     Serial.println("Connection succeeded!");
   } else {
@@ -167,19 +186,25 @@ void Audio::Record(Adafruit_SSD1331* display, bool firstRun) {
 
   end = micros();
   unsigned long t1 = micros();
-  Serial.println("Processing...");
-  if (firstRun)
+  bool connected = client.connected();
+  Serial.print("Processing... ");
+  Serial.println(connected);
+  if (!connected)
   {
-    UpdateSampleRate(end - start);
-    PrintHttpHeader();
+    ConnectToServer(false);
   }
-    paddedHeader[24] = sampleRate % 256;  // sampling rate
-    paddedHeader[25] = sampleRate / 256;
-    PrintHttpBody2();
+  // if (firstRun)
+  // {
+    UpdateSampleRate(end - start);
+  // }
+  // paddedHeader[24] = sampleRate % 256;  // sampling rate
+  // paddedHeader[25] = sampleRate / 256;
+  PrintHttpHeader();
+  PrintHttpBody2();
 
   String HttpBody3 = "\"}}\r\n\r\n";
   client.print(HttpBody3);
-  UpdateSampleRate(end - start);
+  // UpdateSampleRate(end - start);
 
   unsigned long t2 = micros();
   Serial.print("Processing done: ");
